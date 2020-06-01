@@ -18,7 +18,7 @@ namespace Robust_Fixer
         static void Main(string[] args)
         {
             Console.WriteLine("Select your option");
-            Console.WriteLine("1: Delete robust folders \n2: Add windows defender exclusion \n3: Execute both options");
+            Console.WriteLine("1: Delete robust folders \n2: Add windows defender exclusion \n3: Execute option 1 and 2 \n4: Disable Hyper-V features");
             int selectedOption;
             bool successfullyParsed = int.TryParse(Console.ReadLine(), out selectedOption);
 
@@ -72,6 +72,9 @@ namespace Robust_Fixer
                             break;
                         }
                         break;
+                    case 4:
+                        DisableHyperVFeatures();
+                        break;
                 }
             }
             
@@ -113,13 +116,26 @@ namespace Robust_Fixer
         private static void AddRobustLauncherToWindowsDefender(string launcherPath)
         {
             // C&P xd
-            string addFolderExclusionCommand = "powershell -Command Add-MpPreference -ExclusionPath \"" + launcherPath + "\"";
+            string addFolderExclusionCommand = "Add-MpPreference -ExclusionPath \"" + launcherPath + "\"";
             //runspace
             Runspace runspace = RunspaceFactory.CreateRunspace();
             runspace.Open();
             //pipeline
             Pipeline pipeline = runspace.CreatePipeline();
             pipeline.Commands.AddScript(addFolderExclusionCommand);
+            pipeline.Commands.Add("Out-String");
+            pipeline.Invoke();
+            //runspace
+            runspace.Close();
+        }
+
+        private static void DisableHyperVFeatures()
+        {
+            Runspace runspace = RunspaceFactory.CreateRunspace();
+            runspace.Open();
+            //pipeline
+            Pipeline pipeline = runspace.CreatePipeline();
+            pipeline.Commands.AddScript("Disable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All");
             pipeline.Commands.Add("Out-String");
             pipeline.Invoke();
             //runspace
@@ -133,9 +149,11 @@ namespace Robust_Fixer
             if (doesDirectoryExist)
             {
                 string robustGtaFolderPath = Path.Combine(path, "Robust");
+                Console.WriteLine("Path: " + path);
                 bool doesRobustDirectoryExist = Directory.Exists(robustGtaFolderPath);
                 if (doesRobustDirectoryExist)
                 {
+                    Console.WriteLine("Robust GTA path: " + robustGtaFolderPath);
                     var gtaDiretory = new DirectoryInfo(robustGtaFolderPath);
                     gtaDiretory.Delete(true);
                     Console.WriteLine("The Robust folder in the GTA diretory was removed.");
