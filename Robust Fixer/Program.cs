@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
+using Microsoft.Win32;
 
 namespace Robust_Fixer
 {
@@ -18,7 +19,7 @@ namespace Robust_Fixer
         static void Main(string[] args)
         {
             Console.WriteLine("Select your option");
-            Console.WriteLine("1: Delete robust folders \n2: Add windows defender exclusion \n3: Execute option 1 and 2 \n4: Disable Hyper-V features");
+            Console.WriteLine("1: Delete robust folders \n2: Add windows defender exclusion \n3: Execute option 1 and 2 \n4: Disable Hyper-V features \n5: Fix Onedrive Username issue (might break your PC)");
             int selectedOption;
             bool successfullyParsed = int.TryParse(Console.ReadLine(), out selectedOption);
 
@@ -75,9 +76,23 @@ namespace Robust_Fixer
                     case 4:
                         DisableHyperVFeatures();
                         break;
+                    case 5:
+                        Console.WriteLine("Are you sure you want to continue? Please be aware that this might break your User.");
+                        Console.Write("To continue please type 'yes' \n");
+                        if (Console.ReadLine() == "yes")
+                        {
+                            ResetDocuments();
+                            Console.WriteLine("Done, please restart computer");
+                        }
+                        else
+                        {
+                            Console.WriteLine("You canceled the Request");
+                            break;
+                        }
+                        break;
                 }
             }
-            
+
             Console.WriteLine("Press a key to exit.");
             Console.ReadKey();
         }
@@ -180,6 +195,21 @@ namespace Robust_Fixer
             }
             Console.WriteLine("The Robust folder in the My Documents diretory didn't exist. Nothing has been changed.");
             return false;
+        }
+
+
+        protected static bool ResetDocuments()
+        {
+            using (RegistryKey regKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders", true))
+                if (regKey != null)
+                {
+                    regKey.SetValue("Personal", "%USERPROFILE%\\Documents", RegistryValueKind.String);
+                    regKey.Close();
+                    return true;
+                }
+            Console.WriteLine("Failed");
+            return false;
+
         }
     }
 }
