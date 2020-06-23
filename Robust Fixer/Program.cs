@@ -198,7 +198,7 @@ namespace Robust_Fixer
         }
 
 
-        protected static bool ResetDocuments()
+        private static bool ResetDocuments()
         {
             using (RegistryKey regKey = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders", true))
                 if (regKey != null)
@@ -209,7 +209,6 @@ namespace Robust_Fixer
                 }
             Console.WriteLine("Failed");
             return false;
-
         }
     }
 }
